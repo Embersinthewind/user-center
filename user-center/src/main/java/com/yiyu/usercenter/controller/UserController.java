@@ -6,7 +6,9 @@ import com.yiyu.usercenter.common.ErrorCode;
 import com.yiyu.usercenter.common.ResultUtils;
 import com.yiyu.usercenter.exception.BusinessException;
 import com.yiyu.usercenter.model.domain.User;
-import com.yiyu.usercenter.model.domain.request.UserRegisterRequest;
+import com.yiyu.usercenter.model.request.UserUpdateRequest;
+import com.yiyu.usercenter.model.request.UserDeleteRequest;
+import com.yiyu.usercenter.model.request.UserRegisterRequest;
 import com.yiyu.usercenter.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +41,9 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        String playerCode=userRegisterRequest.getPlayerCode();
+        String playerCode = userRegisterRequest.getPlayerCode();
 
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword,playerCode)) {
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, playerCode)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         long result = userService.userRegister(userAccount, userPassword, checkPassword, playerCode);
@@ -73,7 +75,7 @@ public class UserController {
      */
     @PostMapping("/logout")
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
-        if (request== null) {
+        if (request == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         int result = userService.userLogout(request);
@@ -118,16 +120,38 @@ public class UserController {
      * 管理员删除
      */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteUser(@RequestBody UserDeleteRequest deleteRequest, HttpServletRequest request) {
         //仅管理员可删除
         if (!isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
+        Long id = deleteRequest.getId();
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean b = userService.removeById(id);
         return ResultUtils.success(b);
+    }
+
+    /**
+     * 管理员编辑
+     */
+    @PostMapping("/updateUser")
+    public BaseResponse<Long> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+        if (userUpdateRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR, "请求参数可能为null");
+        }
+        Long id = userUpdateRequest.getId();
+        String userName = userUpdateRequest.getUserName();
+        Integer userRole = userUpdateRequest.getUserRole();
+        // 校验
+        if (StringUtils.isAnyBlank(id.toString(),userName,userRole.toString())){
+            throw new BusinessException(ErrorCode.NULL_ERROR,"不能将用户的某项信息修改为空");
+        }
+        // 将用户名前后空格去掉
+        userName = userName.trim();
+        Long aLong = userService.updateUser(id, userName, userRole);
+        return ResultUtils.success(aLong);
     }
 
     /**

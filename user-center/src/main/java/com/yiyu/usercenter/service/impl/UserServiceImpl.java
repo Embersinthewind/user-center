@@ -9,7 +9,6 @@ import com.yiyu.usercenter.service.UserService;
 import com.yiyu.usercenter.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -22,7 +21,7 @@ import static com.yiyu.usercenter.contant.UserConstant.USER_LOGIN_STATE;
 
 
 /**
- * @author Stay awake
+ * @author yiyu
  * @description 针对表【user】的数据库操作Service实现
  * @createDate 2023-08-11 21:14:57
  */
@@ -108,6 +107,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
         user.setPlayerCode(playerCode);
+        //为新注册用户设置默认名称
+        user.setUsername(userAccount);
         boolean saveResult = this.save(user);
         if (!saveResult) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"保存用户失败");
@@ -157,7 +158,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //用户不存在
         if (user == null) {
             log.info("user login failed, userAccount Cannot match userPassword");
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户不存在");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户账号或密码错误");
         }
 
         //用户脱敏
@@ -179,6 +180,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public int userLogout(HttpServletRequest request) {
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         throw new BusinessException(ErrorCode.SUCCESS,"退出成功");
+    }
+
+
+    /**
+     *
+     * @param id 要修改的用户id
+     * @param userName 修改为
+     * @param userRole 修改为
+     * @return 修改的用户id
+     */
+    @Override
+    public Long updateUser(Long id,String userName,Integer userRole) {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+
+        wrapper.eq("id",id );
+        User user = userMapper.selectOne(wrapper);
+        user.setUsername(userName);
+        user.setUserRole(userRole);
+        int update = userMapper.update(user, wrapper);
+        if (update <= 0){
+            throw new BusinessException(ErrorCode.DATABASE_ERROR, "修改用户信息失败");
+        }
+        return id;
     }
 
     /**
@@ -203,7 +227,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setCreateTime(originUser.getCreateTime());
         return safetyUser;
     }
-
 
 
 

@@ -1,11 +1,11 @@
-package com.yiyu.usercenter.model.domain.request;
+package com.yiyu.usercenter.model.request;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * 用户注册请求体
+ * 封装用户注册请求体
  */
 @Data
 public class UserRegisterRequest implements Serializable {

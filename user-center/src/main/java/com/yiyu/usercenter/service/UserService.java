@@ -3,8 +3,8 @@ package com.yiyu.usercenter.service;
 import com.yiyu.usercenter.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * 用户服务
@@ -38,6 +38,17 @@ public interface UserService extends IService<User> {
      * @return
      */
     int userLogout(HttpServletRequest request);
+
+
+    /**
+     * 编辑后修改用户
+     * @param id
+     * @param userName
+     * @param userRole
+     * @return返回修改的用户id
+     */
+    Long updateUser( Long id,String userName,Integer userRole);
+
 
     /**
      * 用户脱敏
